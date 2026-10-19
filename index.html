@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Casa Wendelina – Reservations</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#141414;--panel:#1d1d1d;--line:#333;--gold:#b8975a;--gold2:#d6b878;--cream:#f3ead8;--mute:#9a9486;--ok:#8fb287;--bad:#c9705f}
+*{box-sizing:border-box;margin:0}
+body{background:var(--bg);color:var(--cream);font-family:'Jost',sans-serif;font-weight:300;line-height:1.6}
+h1,h2,h3,.serif{font-family:'Cormorant Garamond',serif;font-weight:500}
+header{text-align:center;padding:40px 16px 24px;border-bottom:1px solid var(--line);background:repeating-linear-gradient(90deg,#161616 0 14px,#101010 14px 16px)}
+header svg{width:54px;height:54px;stroke:var(--gold);fill:none;stroke-width:1.5}
+header h1{font-size:2.4rem;letter-spacing:.18em;color:var(--gold2);text-transform:uppercase;margin-top:6px}
+header p{letter-spacing:.35em;font-size:.72rem;color:var(--mute);text-transform:uppercase}
+nav{display:flex;justify-content:center;gap:4px;padding:12px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+nav button{background:none;border:0;color:var(--mute);font:inherit;letter-spacing:.15em;text-transform:uppercase;font-size:.75rem;padding:8px 16px;cursor:pointer;border-bottom:1px solid transparent}
+nav button.on{color:var(--gold2);border-color:var(--gold)}
+main{max-width:960px;margin:0 auto;padding:24px 16px 80px}
+.view{display:none}.view.on{display:block}
+.card{background:var(--panel);border:1px solid var(--line);padding:20px;margin-bottom:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+label{display:block;font-size:.7rem;letter-spacing:.15em;text-transform:uppercase;color:var(--mute);margin-bottom:4px}
+input,select,textarea{width:100%;background:#111;border:1px solid var(--line);color:var(--cream);padding:10px;font:inherit;border-radius:0}
+input:focus,select:focus,textarea:focus{outline:1px solid var(--gold)}
+.btn{background:var(--gold);color:#111;border:0;padding:11px 24px;letter-spacing:.15em;text-transform:uppercase;font:500 .75rem 'Jost';cursor:pointer}
+.btn:hover{background:var(--gold2)}.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.ghost{background:none;border:1px solid var(--gold);color:var(--gold2)}
+.btn.sm{padding:6px 12px;font-size:.65rem}
+.room{display:grid;grid-template-columns:150px 1fr auto;gap:18px;align-items:center}
+.room .img{height:110px;display:flex;align-items:center;justify-content:center;font-size:2.4rem;border:1px solid var(--line)}
+.room h3{font-size:1.5rem;color:var(--gold2)}
+.room small{color:var(--mute)}
+.price{text-align:right}.price b{font:500 1.6rem 'Cormorant Garamond';color:var(--cream)}
+.tag{display:inline-block;font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;padding:2px 8px;border:1px solid var(--line);margin:4px 4px 0 0;color:var(--mute)}
+.left{font-size:.75rem;color:var(--ok)}.left.low{color:var(--bad)}
+.row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed var(--line)}
+.row.total{border:0;font:500 1.4rem 'Cormorant Garamond';color:var(--gold2)}
+.steps{display:flex;gap:8px;font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--mute);margin-bottom:16px}
+.steps span.on{color:var(--gold2)}
+.err{color:var(--bad);font-size:.85rem;margin-top:8px}
+table{width:100%;border-collapse:collapse;font-size:.85rem}
+th{text-align:left;font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;color:var(--mute);padding:8px;border-bottom:1px solid var(--line)}
+td{padding:8px;border-bottom:1px solid var(--line);vertical-align:top}
+.st{font-size:.65rem;letter-spacing:.1em;text-transform:uppercase}.st.c{color:var(--ok)}.st.x{color:var(--bad)}
+.ref{font:500 2.2rem 'Cormorant Garamond';letter-spacing:.15em;color:var(--gold2)}
+.empty{color:var(--mute);text-align:center;padding:30px}
+@media(max-width:620px){.room{grid-template-columns:1fr}.price{text-align:left}.room .img{height:70px}}
+</style>
+</head>
+<body>
+<header>
+  <svg viewBox="0 0 64 64"><path d="M10 54C22 44 36 30 54 10M54 10c-8 2-14 4-18 10m18-10c-2 8-4 14-10 18M38 28c-8 0-12 2-16 8m16-8c0 8-2 12-8 16M24 40c-6 0-10 2-12 6"/><circle cx="34" cy="26" r="2"/><circle cx="26" cy="36" r="2"/></svg>
+  <h1>Casa Wendelina</h1><p>Boutique Hotel</p>
+</header>
+<nav>
+  <button class="on" data-v="book">Reserve</button>
+  <button data-v="find">My Booking</button>
+  <button data-v="staff">Staff</button>
+</nav>
+
+<main>
+<!-- RESERVE -->
+<section id="book" class="view on">
+  <div class="steps"><span id="s1" class="on">1 · Dates</span><span id="s2">2 · Details</span><span id="s3">3 · Confirmed</span></div>
+
+  <div id="step1">
+    <div class="card"><div class="grid">
+      <div><label>Check-in</label><input type="date" id="ci"></div>
+      <div><label>Check-out</label><input type="date" id="co"></div>
+      <div><label>Number of persons</label><select id="ad"></select></div>
+    </div><div id="derr" class="err"></div></div>
+    <div id="rooms"></div>
+  </div>
+
+  <div id="step2" style="display:none">
+    <div class="card">
+      <h2 style="margin-bottom:12px">Guest details</h2>
+      <div class="grid">
+        <div><label>Name *</label><input id="gn"></div>
+        <div><label>Mobile number *</label><input id="gp" type="tel"></div>
+        <div><label>Email address *</label><input id="ge" type="email"></div>
+        <div><label>Mode of payment *</label><select id="gm"><option>Cash (pay at hotel)</option><option>GCash</option><option>Maya</option><option>Bank transfer</option><option>Credit / debit card (at hotel)</option></select></div>
+        <div><label>Arrival time</label><select id="ga"><option>Before 2 PM</option><option selected>2 PM – 6 PM</option><option>6 PM – 10 PM</option><option>After 10 PM</option></select></div>
+      </div>
+      <div style="margin-top:12px"><label>Special requests</label><textarea id="gr" rows="3" placeholder="Early check-in, extra bed, dietary needs…"></textarea></div>
+      <div id="gerr" class="err"></div>
+    </div>
+    <div class="card" id="sum"></div>
+    <button class="btn ghost" onclick="go(1)">Back</button> <button class="btn" onclick="confirmBooking()">Confirm reservation</button>
+  </div>
+
+  <div id="step3" style="display:none">
+    <div class="card" style="text-align:center">
+      <p class="serif" style="font-size:1.4rem">Thank you — your stay is reserved.</p>
+      <p style="color:var(--mute)">Booking reference</p>
+      <div class="ref" id="rf"></div>
+      <p style="color:var(--mute);margin:8px 0 16px">The hotel will contact you by mobile or email to arrange your chosen payment. Keep this reference to look up or cancel your booking.</p>
+      <div id="rsum" style="text-align:left;max-width:420px;margin:0 auto 16px"></div>
+      <button class="btn" onclick="reset()">New reservation</button>
+    </div>
+  </div>
+</section>
+
+<!-- FIND -->
+<section id="find" class="view">
+  <div class="card"><div class="grid">
+    <div><label>Booking reference</label><input id="fr" placeholder="CW-XXXXXX"></div>
+    <div><label>Email used</label><input id="fe" type="email"></div>
+  </div><br><button class="btn" onclick="findB()">Look up</button><div id="fres"></div></div>
+</section>
+
+<!-- STAFF -->
+<section id="staff" class="view">
+  <div class="card" id="lock">
+    <label>Staff passcode</label><input id="pw" type="password" style="max-width:220px"> <button class="btn sm" onclick="unlock()">Enter</button>
+    <div id="perr" class="err"></div><p style="color:var(--mute);font-size:.8rem;margin-top:8px">Demo passcode: <b>wendelina</b> — change it in the script before going live.</p>
+  </div>
+  <div id="admin" style="display:none">
+    <div class="grid" id="stats" style="margin-bottom:16px"></div>
+    <div class="card" style="overflow-x:auto"><table><thead><tr><th>Ref</th><th>Guest</th><th>Room</th><th>Stay</th><th>Total</th><th>Status</th><th></th></tr></thead><tbody id="tb"></tbody></table></div>
+  </div>
+</section>
+</main>
+
+<script>
+const ROOMS=[
+ {id:'std',name:'Olive Queen',icon:'🛏️',price:3800,inv:6,cap:2,size:'24 m²',desc:'A calm, minimal room with a queen bed, rain shower and warm pendant lighting.',am:['Queen bed','Wi-Fi','Rain shower','Breakfast for 2']},
+ {id:'dlx',name:'Deluxe King',icon:'🌿',price:5200,inv:5,cap:3,size:'32 m²',desc:'Generous king room with a work nook, lounge chair and city-facing window.',am:['King bed','Wi-Fi','Work desk','Minibar','Breakfast for 2']},
+ {id:'fam',name:'Casa Family',icon:'🏡',price:6900,inv:3,cap:4,size:'42 m²',desc:'Two beds and a sitting area — comfortable for families or small groups.',am:['2 double beds','Sitting area','Wi-Fi','Breakfast for 4']},
+ {id:'ste',name:'Wendelina Suite',icon:'✨',price:9800,inv:2,cap:3,size:'58 m²',desc:'Our signature suite: separate living room, soaking tub and golden-hour terrace.',am:['King bed','Living room','Soaking tub','Terrace','Breakfast for 3']}
+];
+const VAT=.12, PASS='wendelina', KEY='cw_bookings_v1';
+const $=id=>document.getElementById(id);
+const peso=n=>'₱'+n.toLocaleString('en-PH');
+let sel=null;
+
+const load=()=>{try{return JSON.parse(localStorage.getItem(KEY))||[]}catch(e){return mem}};
+let mem=[];
+const save=b=>{mem=b;try{localStorage.setItem(KEY,JSON.stringify(b))}catch(e){}};
+
+const iso=d=>d.toISOString().slice(0,10);
+const today=new Date(Date.now()+8*36e5);
+$('ci').min=iso(today);$('ci').value=iso(today);
+const tmr=new Date(today.getTime()+864e5);$('co').min=iso(tmr);$('co').value=iso(tmr);
+[...Array(6)].forEach((_,i)=>{$('ad').add(new Option(i+1,i+1));});
+$('ad').value=2;
+
+const nights=(a,b)=>Math.round((new Date(b)-new Date(a))/864e5);
+function booked(room,a,b){ // max rooms taken on any night
+  const bs=load().filter(x=>x.room===room&&x.status==='confirmed'&&x.ci<b&&x.co>a);
+  let max=0;for(let d=new Date(a);iso(d)<b;d.setDate(d.getDate()+1)){
+    const k=iso(d);max=Math.max(max,bs.filter(x=>x.ci<=k&&x.co>k).length)}
+  return max;
+}
+function renderRooms(){
+  const a=$('ci').value,b=$('co').value,g=+$('ad').value;$('derr').textContent='';
+  if(!a||!b||b<=a){$('derr').textContent='Check-out must be after check-in.';$('rooms').innerHTML='';return}
+  if(a<iso(today)){$('derr').textContent='Check-in cannot be in the past.';$('rooms').innerHTML='';return}
+  const n=nights(a,b);
+  $('rooms').innerHTML=ROOMS.map(r=>{
+    const left=r.inv-booked(r.id,a,b),fits=g<=r.cap,ok=left>0&&fits;
+    return `<div class="card room"><div class="img">${r.icon}</div>
+    <div><h3>${r.name}</h3><small>${r.size} · up to ${r.cap} guests</small><p style="margin:4px 0">${r.desc}</p>
+    ${r.am.map(x=>`<span class="tag">${x}</span>`).join('')}
+    <div class="left ${left<=2?'low':''}" style="margin-top:6px">${!fits?'Too small for your party':left>0?left+' room'+(left>1?'s':'')+' left':'Sold out for these dates'}</div></div>
+    <div class="price"><small>per night</small><br><b>${peso(r.price)}</b><br><small>${n} night${n>1?'s':''}: ${peso(r.price*n)}</small><br><br>
+    <button class="btn" ${ok?'':'disabled'} onclick="pick('${r.id}')">Select</button></div></div>`}).join('');
+}
+['ci','co','ad'].forEach(i=>$(i).addEventListener('change',()=>{
+  if(i==='ci'&&$('co').value<=$('ci').value){const d=new Date($('ci').value);d.setDate(d.getDate()+1);$('co').value=iso(d)}
+  if(i==='ci'){const d=new Date($('ci').value);d.setDate(d.getDate()+1);$('co').min=iso(d)}
+  renderRooms()}));
+
+function quote(){
+  const r=ROOMS.find(x=>x.id===sel),n=nights($('ci').value,$('co').value),sub=r.price*n,tax=Math.round(sub*VAT);
+  return {r,n,sub,tax,total:sub+tax}
+}
+function pick(id){sel=id;go(2);const q=quote();
+  $('sum').innerHTML=`<h2>${q.r.name}</h2>
+  <div class="row"><span>Check-in</span><span>${$('ci').value} (from 2 PM)</span></div>
+  <div class="row"><span>Check-out</span><span>${$('co').value} (until 12 NN)</span></div>
+  <div class="row"><span>Number of persons</span><span>${$('ad').value}</span></div>
+  <div class="row"><span>${peso(q.r.price)} × ${q.n} night(s)</span><span>${peso(q.sub)}</span></div>
+  <div class="row"><span>VAT 12%</span><span>${peso(q.tax)}</span></div>
+  <div class="row total"><span>Total</span><span>${peso(q.total)}</span></div>`}
+function go(n){[1,2,3].forEach(i=>{$('step'+i).style.display=i===n?'block':'none';$('s'+i).classList.toggle('on',i<=n)});window.scrollTo(0,0)}
+function reset(){sel=null;['gn','ge','gp','gr'].forEach(i=>$(i).value='');go(1);renderRooms()}
+
+function confirmBooking(){
+  const name=$('gn').value.trim(),email=$('ge').value.trim(),ph=$('gp').value.trim();
+  if(!name||!/^\S+@\S+\.\S+$/.test(email)||ph.length<7){$('gerr').textContent='Please enter your name, a valid email and a mobile number.';return}
+  const a=$('ci').value,b=$('co').value,r=ROOMS.find(x=>x.id===sel);
+  if(r.inv-booked(sel,a,b)<1){$('gerr').textContent='Sorry, that room was just taken. Please choose again.';return}
+  const q=quote(),ref='CW-'+Math.random().toString(36).slice(2,8).toUpperCase();
+  const bk={ref,room:sel,roomName:r.name,ci:a,co:b,persons:+$('ad').value,payment:$('gm').value,name,email,phone:ph,
+    arrival:$('ga').value,notes:$('gr').value.trim(),total:q.total,status:'confirmed',created:new Date().toISOString()};
+  const all=load();all.push(bk);save(all);
+  $('rf').textContent=ref;$('rsum').innerHTML=`<div class="row"><span>Room</span><span>${r.name}</span></div>
+  <div class="row"><span>Stay</span><span>${a} → ${b}</span></div><div class="row"><span>Name</span><span>${esc(name)}</span></div>
+  <div class="row"><span>Persons</span><span>${bk.persons}</span></div><div class="row"><span>Mode of payment</span><span>${bk.payment}</span></div>
+  <div class="row total"><span>Total</span><span>${peso(q.total)}</span></div>`;
+  $('gerr').textContent='';go(3);
+}
+
+function findB(){
+  const ref=$('fr').value.trim().toUpperCase(),em=$('fe').value.trim().toLowerCase();
+  const b=load().find(x=>x.ref===ref&&x.email.toLowerCase()===em);
+  $('fres').innerHTML=!b?'<p class="err">No booking found. Check your reference and email.</p>':
+  `<div class="card" style="margin-top:16px"><h2>${b.roomName} <span class="st ${b.status==='confirmed'?'c':'x'}">${b.status}</span></h2>
+  <div class="row"><span>Stay</span><span>${b.ci} → ${b.co}</span></div><div class="row"><span>Name</span><span>${esc(b.name)}</span></div>
+  <div class="row"><span>Persons</span><span>${b.persons}</span></div><div class="row"><span>Mode of payment</span><span>${b.payment}</span></div>
+  <div class="row total"><span>Total</span><span>${peso(b.total)}</span></div>
+  ${b.status==='confirmed'?`<button class="btn ghost sm" onclick="cancelB('${b.ref}',true)">Cancel booking</button>`:''}</div>`;
+}
+function cancelB(ref,fromGuest){
+  if(!confirm('Cancel booking '+ref+'?'))return;
+  const all=load();const b=all.find(x=>x.ref===ref);if(b)b.status='cancelled';save(all);
+  fromGuest?findB():adminRender();renderRooms();
+}
+
+function unlock(){if($('pw').value===PASS){$('lock').style.display='none';$('admin').style.display='block';adminRender()}else $('perr').textContent='Incorrect passcode.'}
+function adminRender(){
+  const all=load().sort((a,b)=>a.ci.localeCompare(b.ci)),act=all.filter(x=>x.status==='confirmed');
+  const t=iso(today);
+  $('stats').innerHTML=[['Upcoming',act.filter(x=>x.co>t).length],['Arriving today',act.filter(x=>x.ci===t).length],['In-house',act.filter(x=>x.ci<=t&&x.co>t).length],['Booked revenue',peso(act.reduce((s,x)=>s+x.total,0))]]
+   .map(([l,v])=>`<div class="card" style="margin:0"><label>${l}</label><div class="serif" style="font-size:1.8rem;color:var(--gold2)">${v}</div></div>`).join('');
+  $('tb').innerHTML=all.length?all.map(b=>`<tr><td>${b.ref}</td><td>${esc(b.name)}<br><small style="color:var(--mute)">${esc(b.email)} · ${esc(b.phone)}${b.notes?'<br>“'+esc(b.notes)+'”':''}</small></td>
+  <td>${b.roomName}<br><small style="color:var(--mute)">${b.persons} person(s)</small></td><td>${b.ci} → ${b.co}</td><td>${peso(b.total)}<br><small style="color:var(--mute)">${b.payment}</small></td><td class="st ${b.status==='confirmed'?'c':'x'}">${b.status}</td>
+  <td>${b.status==='confirmed'?`<button class="btn ghost sm" onclick="cancelB('${b.ref}')">Cancel</button>`:''}</td></tr>`).join(''):'<tr><td colspan="7" class="empty">No bookings yet.</td></tr>';
+}
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('on',x===b));
+  document.querySelectorAll('.view').forEach(v=>v.classList.toggle('on',v.id===b.dataset.v))});
+renderRooms();
+</script>
+</body>
+</html>
