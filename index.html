@@ -80,7 +80,6 @@ td{padding:8px;border-bottom:1px solid var(--line);vertical-align:top}
       <div class="grid">
         <div><label>Name *</label><input id="gn"></div>
         <div><label>Mobile number *</label><input id="gp" type="tel"></div>
-        <div><label>Email address *</label><input id="ge" type="email"></div>
         <div><label>Mode of payment *</label><select id="gm"><option>Cash (pay at hotel)</option><option>GCash</option><option>Maya</option><option>Bank transfer</option><option>Credit / debit card (at hotel)</option></select></div>
         <div><label>Arrival time</label><select id="ga"><option>Before 2 PM</option><option selected>2 PM – 6 PM</option><option>6 PM – 10 PM</option><option>After 10 PM</option></select></div>
       </div>
@@ -96,7 +95,7 @@ td{padding:8px;border-bottom:1px solid var(--line);vertical-align:top}
       <p class="serif" style="font-size:1.4rem">Thank you — your stay is reserved.</p>
       <p style="color:var(--mute)">Booking reference</p>
       <div class="ref" id="rf"></div>
-      <p style="color:var(--mute);margin:8px 0 16px">The hotel will contact you by mobile or email to arrange your chosen payment. Keep this reference to look up or cancel your booking.</p>
+      <p style="color:var(--mute);margin:8px 0 16px">The hotel will contact you by mobile to arrange your chosen payment. Keep this reference to look up or cancel your booking.</p>
       <div id="rsum" style="text-align:left;max-width:420px;margin:0 auto 16px"></div>
       <button class="btn" onclick="reset()">New reservation</button>
     </div>
@@ -107,7 +106,7 @@ td{padding:8px;border-bottom:1px solid var(--line);vertical-align:top}
 <section id="find" class="view">
   <div class="card"><div class="grid">
     <div><label>Booking reference</label><input id="fr" placeholder="CW-XXXXXX"></div>
-    <div><label>Email used</label><input id="fe" type="email"></div>
+    <div><label>Mobile number used</label><input id="fe" type="tel"></div>
   </div><br><button class="btn" onclick="findB()">Look up</button><div id="fres"></div></div>
 </section>
 
@@ -186,15 +185,15 @@ function pick(id){sel=id;go(2);const q=quote();
   <div class="row"><span>VAT 12%</span><span>${peso(q.tax)}</span></div>
   <div class="row total"><span>Total</span><span>${peso(q.total)}</span></div>`}
 function go(n){[1,2,3].forEach(i=>{$('step'+i).style.display=i===n?'block':'none';$('s'+i).classList.toggle('on',i<=n)});window.scrollTo(0,0)}
-function reset(){sel=null;['gn','ge','gp','gr'].forEach(i=>$(i).value='');go(1);renderRooms()}
+function reset(){sel=null;['gn','gp','gr'].forEach(i=>$(i).value='');go(1);renderRooms()}
 
 function confirmBooking(){
-  const name=$('gn').value.trim(),email=$('ge').value.trim(),ph=$('gp').value.trim();
-  if(!name||!/^\S+@\S+\.\S+$/.test(email)||ph.length<7){$('gerr').textContent='Please enter your name, a valid email and a mobile number.';return}
+  const name=$('gn').value.trim(),ph=$('gp').value.trim();
+  if(!name||ph.replace(/\D/g,'').length<7){$('gerr').textContent='Please enter your name and a valid mobile number.';return}
   const a=$('ci').value,b=$('co').value,r=ROOMS.find(x=>x.id===sel);
   if(r.inv-booked(sel,a,b)<1){$('gerr').textContent='Sorry, that room was just taken. Please choose again.';return}
   const q=quote(),ref='CW-'+Math.random().toString(36).slice(2,8).toUpperCase();
-  const bk={ref,room:sel,roomName:r.name,ci:a,co:b,persons:+$('ad').value,payment:$('gm').value,name,email,phone:ph,
+  const bk={ref,room:sel,roomName:r.name,ci:a,co:b,persons:+$('ad').value,payment:$('gm').value,name,phone:ph,
     arrival:$('ga').value,notes:$('gr').value.trim(),total:q.total,status:'confirmed',created:new Date().toISOString()};
   const all=load();all.push(bk);save(all);
   $('rf').textContent=ref;$('rsum').innerHTML=`<div class="row"><span>Room</span><span>${r.name}</span></div>
@@ -205,9 +204,9 @@ function confirmBooking(){
 }
 
 function findB(){
-  const ref=$('fr').value.trim().toUpperCase(),em=$('fe').value.trim().toLowerCase();
-  const b=load().find(x=>x.ref===ref&&x.email.toLowerCase()===em);
-  $('fres').innerHTML=!b?'<p class="err">No booking found. Check your reference and email.</p>':
+  const ref=$('fr').value.trim().toUpperCase(),em=$('fe').value.replace(/\D/g,'');
+  const b=load().find(x=>x.ref===ref&&x.phone.replace(/\D/g,'')===em);
+  $('fres').innerHTML=!b?'<p class="err">No booking found. Check your reference and mobile number.</p>':
   `<div class="card" style="margin-top:16px"><h2>${b.roomName} <span class="st ${b.status==='confirmed'?'c':'x'}">${b.status}</span></h2>
   <div class="row"><span>Stay</span><span>${b.ci} → ${b.co}</span></div><div class="row"><span>Name</span><span>${esc(b.name)}</span></div>
   <div class="row"><span>Persons</span><span>${b.persons}</span></div><div class="row"><span>Mode of payment</span><span>${b.payment}</span></div>
@@ -226,7 +225,7 @@ function adminRender(){
   const t=iso(today);
   $('stats').innerHTML=[['Upcoming',act.filter(x=>x.co>t).length],['Arriving today',act.filter(x=>x.ci===t).length],['In-house',act.filter(x=>x.ci<=t&&x.co>t).length],['Booked revenue',peso(act.reduce((s,x)=>s+x.total,0))]]
    .map(([l,v])=>`<div class="card" style="margin:0"><label>${l}</label><div class="serif" style="font-size:1.8rem;color:var(--gold2)">${v}</div></div>`).join('');
-  $('tb').innerHTML=all.length?all.map(b=>`<tr><td>${b.ref}</td><td>${esc(b.name)}<br><small style="color:var(--mute)">${esc(b.email)} · ${esc(b.phone)}${b.notes?'<br>“'+esc(b.notes)+'”':''}</small></td>
+  $('tb').innerHTML=all.length?all.map(b=>`<tr><td>${b.ref}</td><td>${esc(b.name)}<br><small style="color:var(--mute)">${esc(b.phone)}${b.notes?'<br>“'+esc(b.notes)+'”':''}</small></td>
   <td>${b.roomName}<br><small style="color:var(--mute)">${b.persons} person(s)</small></td><td>${b.ci} → ${b.co}</td><td>${peso(b.total)}<br><small style="color:var(--mute)">${b.payment}</small></td><td class="st ${b.status==='confirmed'?'c':'x'}">${b.status}</td>
   <td>${b.status==='confirmed'?`<button class="btn ghost sm" onclick="cancelB('${b.ref}')">Cancel</button>`:''}</td></tr>`).join(''):'<tr><td colspan="7" class="empty">No bookings yet.</td></tr>';
 }
