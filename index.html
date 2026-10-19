@@ -164,7 +164,7 @@ function renderRooms(){
     <div><h3>${r.name}</h3><small>${r.size} · up to ${r.cap} guests</small><p style="margin:4px 0">${r.desc}</p>
     ${r.am.map(x=>`<span class="tag">${x}</span>`).join('')}
     <div class="left ${left<=2?'low':''}" style="margin-top:6px">${!fits?'Too small for your party':left>0?left+' room'+(left>1?'s':'')+' left':'Sold out for these dates'}</div></div>
-    <div class="price"><small>per night</small><br><b>${peso(r.price)}</b><br><small>${n} night${n>1?'s':''}: ${peso(r.price*n)}</small><br><br>
+    <div class="price"><small>per night</small><br><b>${peso(r.price)}</b><br><small>${n} night${n>1?'s':''} × ${peso(r.price)} = ${peso(r.price*n)}</small><br><br>
     <button class="btn" ${ok?'':'disabled'} onclick="pick('${r.id}')">Select</button></div></div>`}).join('');
 }
 ['ci','co','ad'].forEach(i=>$(i).addEventListener('change',()=>{
@@ -176,12 +176,19 @@ function quote(){
   const r=ROOMS.find(x=>x.id===sel),n=nights($('ci').value,$('co').value),sub=r.price*n,tax=Math.round(sub*VAT);
   return {r,n,sub,tax,total:sub+tax}
 }
+function nightLines(price){
+  let h='',i=1;
+  for(let d=new Date($('ci').value);iso(d)<$('co').value;d.setDate(d.getDate()+1),i++){
+    h+=`<div class="row" style="font-size:.85rem;color:var(--mute)"><span>Night ${i} · ${iso(d)} · ${$('ad').value} person(s)</span><span>${peso(price)}</span></div>`}
+  return h}
 function pick(id){sel=id;go(2);const q=quote();
   $('sum').innerHTML=`<h2>${q.r.name}</h2>
   <div class="row"><span>Check-in</span><span>${$('ci').value} (from 2 PM)</span></div>
   <div class="row"><span>Check-out</span><span>${$('co').value} (until 12 NN)</span></div>
-  <div class="row"><span>Number of persons</span><span>${$('ad').value}</span></div>
-  <div class="row"><span>${peso(q.r.price)} × ${q.n} night(s)</span><span>${peso(q.sub)}</span></div>
+  <div class="row"><span>Number of nights</span><span>${q.n}</span></div>
+  <div class="row"><span>Persons per night</span><span>${$('ad').value}</span></div>
+  ${nightLines(q.r.price)}
+  <div class="row"><span>${peso(q.r.price)} × ${q.n} night${q.n>1?'s':''}</span><span>${peso(q.sub)}</span></div>
   <div class="row"><span>VAT 12%</span><span>${peso(q.tax)}</span></div>
   <div class="row total"><span>Total</span><span>${peso(q.total)}</span></div>`}
 function go(n){[1,2,3].forEach(i=>{$('step'+i).style.display=i===n?'block':'none';$('s'+i).classList.toggle('on',i<=n)});window.scrollTo(0,0)}
@@ -193,12 +200,13 @@ function confirmBooking(){
   const a=$('ci').value,b=$('co').value,r=ROOMS.find(x=>x.id===sel);
   if(r.inv-booked(sel,a,b)<1){$('gerr').textContent='Sorry, that room was just taken. Please choose again.';return}
   const q=quote(),ref='CW-'+Math.random().toString(36).slice(2,8).toUpperCase();
-  const bk={ref,room:sel,roomName:r.name,ci:a,co:b,persons:+$('ad').value,payment:$('gm').value,name,phone:ph,
+  const bk={ref,room:sel,roomName:r.name,ci:a,co:b,persons:+$('ad').value,nights:q.n,payment:$('gm').value,name,phone:ph,
     arrival:$('ga').value,notes:$('gr').value.trim(),total:q.total,status:'confirmed',created:new Date().toISOString()};
   const all=load();all.push(bk);save(all);
   $('rf').textContent=ref;$('rsum').innerHTML=`<div class="row"><span>Room</span><span>${r.name}</span></div>
   <div class="row"><span>Stay</span><span>${a} → ${b}</span></div><div class="row"><span>Name</span><span>${esc(name)}</span></div>
-  <div class="row"><span>Persons</span><span>${bk.persons}</span></div><div class="row"><span>Mode of payment</span><span>${bk.payment}</span></div>
+  <div class="row"><span>Nights</span><span>${bk.nights}</span></div>
+  <div class="row"><span>Persons per night</span><span>${bk.persons}</span></div><div class="row"><span>Mode of payment</span><span>${bk.payment}</span></div>
   <div class="row total"><span>Total</span><span>${peso(q.total)}</span></div>`;
   $('gerr').textContent='';go(3);
 }
@@ -209,7 +217,8 @@ function findB(){
   $('fres').innerHTML=!b?'<p class="err">No booking found. Check your reference and mobile number.</p>':
   `<div class="card" style="margin-top:16px"><h2>${b.roomName} <span class="st ${b.status==='confirmed'?'c':'x'}">${b.status}</span></h2>
   <div class="row"><span>Stay</span><span>${b.ci} → ${b.co}</span></div><div class="row"><span>Name</span><span>${esc(b.name)}</span></div>
-  <div class="row"><span>Persons</span><span>${b.persons}</span></div><div class="row"><span>Mode of payment</span><span>${b.payment}</span></div>
+  <div class="row"><span>Nights</span><span>${b.nights||nights(b.ci,b.co)}</span></div>
+  <div class="row"><span>Persons per night</span><span>${b.persons}</span></div><div class="row"><span>Mode of payment</span><span>${b.payment}</span></div>
   <div class="row total"><span>Total</span><span>${peso(b.total)}</span></div>
   ${b.status==='confirmed'?`<button class="btn ghost sm" onclick="cancelB('${b.ref}',true)">Cancel booking</button>`:''}</div>`;
 }
@@ -226,7 +235,7 @@ function adminRender(){
   $('stats').innerHTML=[['Upcoming',act.filter(x=>x.co>t).length],['Arriving today',act.filter(x=>x.ci===t).length],['In-house',act.filter(x=>x.ci<=t&&x.co>t).length],['Booked revenue',peso(act.reduce((s,x)=>s+x.total,0))]]
    .map(([l,v])=>`<div class="card" style="margin:0"><label>${l}</label><div class="serif" style="font-size:1.8rem;color:var(--gold2)">${v}</div></div>`).join('');
   $('tb').innerHTML=all.length?all.map(b=>`<tr><td>${b.ref}</td><td>${esc(b.name)}<br><small style="color:var(--mute)">${esc(b.phone)}${b.notes?'<br>“'+esc(b.notes)+'”':''}</small></td>
-  <td>${b.roomName}<br><small style="color:var(--mute)">${b.persons} person(s)</small></td><td>${b.ci} → ${b.co}</td><td>${peso(b.total)}<br><small style="color:var(--mute)">${b.payment}</small></td><td class="st ${b.status==='confirmed'?'c':'x'}">${b.status}</td>
+  <td>${b.roomName}<br><small style="color:var(--mute)">${b.persons} person(s)</small></td><td>${b.ci} → ${b.co}<br><small style="color:var(--mute)">${b.nights||nights(b.ci,b.co)} night(s)</small></td><td>${peso(b.total)}<br><small style="color:var(--mute)">${b.payment}</small></td><td class="st ${b.status==='confirmed'?'c':'x'}">${b.status}</td>
   <td>${b.status==='confirmed'?`<button class="btn ghost sm" onclick="cancelB('${b.ref}')">Cancel</button>`:''}</td></tr>`).join(''):'<tr><td colspan="7" class="empty">No bookings yet.</td></tr>';
 }
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
